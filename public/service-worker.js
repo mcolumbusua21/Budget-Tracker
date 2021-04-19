@@ -1,12 +1,12 @@
-
 const FILES_TO_CACHE = [
   "/",
   "/index.html",
   "/styles.css",
+  "/db.js",
+  "/index.js",
   "/manifest.webmanifest",
   "/icons/icon192.png",
   "/icons/icon512.png",
-
 ];
 const CACHE_NAME = "static-cache-v2";
 const DATA_CACHE_NAME = "data-cache-v1";
@@ -41,36 +41,44 @@ self.addEventListener("activate", function (evt) {
 });
 
 // fetch
-self.addEventListener("fetch", function (evt) {
-  // cache successful requests to the API
-  if (evt.request.url.includes("/api/transaction")) {
-    evt.respondWith(
-      caches
-        .open(DATA_CACHE_NAME)
-        .then((cache) => {
-          return fetch(evt.request)
-            .then((response) => {
-              // If the response was good, clone it and store it in the cache.
-              if (response.status === 200) {
-                cache.put(evt.request.url, response.clone());
-              }
-
-              return response;
-            })
-            .catch((err) => {
-              // Network request failed, try to get it from the cache.
-              return cache.match(evt.request);
-            });
-        })
-        .catch((err) => console.log(err))
-    );
-
+self.addEventListener("fetch", evt => {
+  // non GET requests are not cached and requests to other origins are not cached
+  if (
+    evt.request.method !== "GET" ||
+    !evt.request.url.startsWith(self.location.origin)
+  ) {
+    evt.respondWith(fetch(evt.request));
     return;
   }
-
+// handle runtime GET requests for data from /api routes
+if (evt.request.url.includes("/api/transaction")) {
+  // make network request and fallback to cache if network request fails (offline)
   evt.respondWith(
-    caches.match(evt.request).then(function (response) {
-      return response || fetch(evt.request);
+    caches.open(DATA_CACHE_NAME).then(cache => {
+      return fetch(evt.request)
+        .then(response => {
+          cache.put(evt.request, response.clone());
+          return response;
+        })
+        .catch(() => caches.match(evt.request));
     })
   );
+  return;
+}
+// use cache first for all other requests for performance
+evt.respondWith(
+  caches.match(evt.request).then(cachedResponse => {
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    // request is not in cache. make network request and cache the response
+    return caches.open(DATA_CACHE_NAME).then(cache => {
+      return fetch(evt.request).then(response => {
+        return cache.put(evt.request, response.clone()).then(() => {
+          return response;
+        });
+      });
+    });
+  })
+);
 });

@@ -1,9 +1,8 @@
-const { response } = require("express");
 
 let db;
 let budgetVersion;
 
-const request = indexDB.open('budgetdb', budgetVersion || 21);
+const request = indexedDB.open('budget', budgetVersion || 21);
 
 request.onupgradeneeded = function (e) {
     console.log('upgrade needed');
