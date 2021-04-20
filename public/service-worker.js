@@ -60,7 +60,7 @@ if (evt.request.url.includes("/api/transaction")) {
           cache.put(evt.request, response.clone());
           return response;
         })
-        .catch(() => caches.match(evt.request));
+        .then(() => caches.match(evt.request));
     })
   );
   return;
