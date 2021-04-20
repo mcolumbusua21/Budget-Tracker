@@ -8,7 +8,7 @@ const FILES_TO_CACHE = [
   "/icons/icon192.png",
   "/icons/icon512.png",
 ];
-const CACHE_NAME = "static-cache-v2";
+const CACHE_NAME = "static-cache-v3";
 const DATA_CACHE_NAME = "data-cache-v1";
 
 // install
