@@ -11,7 +11,6 @@ const FILES_TO_CACHE = [
 const CACHE_NAME = "static-cache-v3";
 const DATA_CACHE_NAME = "data-cache-v1";
 
-// install
 self.addEventListener("install", function (evt) {
   evt.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -19,10 +18,8 @@ self.addEventListener("install", function (evt) {
       return cache.addAll(FILES_TO_CACHE);
     })
   );
-
   self.skipWaiting();
 });
-
 self.addEventListener("activate", function (evt) {
   evt.waitUntil(
     caches.keys().then((keyList) => {
@@ -36,10 +33,8 @@ self.addEventListener("activate", function (evt) {
       );
     })
   );
-
   self.clients.claim();
 });
-
 // fetch
 self.addEventListener("fetch", evt => {
   // non GET requests are not cached and requests to other origins are not cached
@@ -50,7 +45,9 @@ self.addEventListener("fetch", evt => {
     evt.respondWith(fetch(evt.request));
     return;
   }
+
 // handle runtime GET requests for data from /api routes
+
 if (evt.request.url.includes("/api/transaction")) {
   // make network request and fallback to cache if network request fails (offline)
   evt.respondWith(
@@ -65,12 +62,14 @@ if (evt.request.url.includes("/api/transaction")) {
   );
   return;
 }
+
 // use cache first for all other requests for performance
 evt.respondWith(
   caches.match(evt.request).then(cachedResponse => {
     if (cachedResponse) {
       return cachedResponse;
     }
+
     // request is not in cache. make network request and cache the response
     return caches.open(DATA_CACHE_NAME).then(cache => {
       return fetch(evt.request).then(response => {
