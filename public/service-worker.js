@@ -3,8 +3,8 @@ const FILES_TO_CACHE = [
   "/index.html",
   "/styles.css",
   "/db.js",
-  "/index.js",
-  "/manifest.webmanifest",
+  "./index.js",
+  "./manifest.webmanifest",
   "/icons/icon192.png",
   "/icons/icon512.png",
 ];
@@ -60,7 +60,7 @@ if (evt.request.url.includes("/api/transaction")) {
           cache.put(evt.request, response.clone());
           return response;
         })
-        .then(() => caches.match(evt.request));
+        .catch(() => caches.match(evt.request));
     })
   );
   return;
